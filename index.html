@@ -92,14 +92,8 @@
 				<input type="submit" value="Submit" />
 			</form>
 		</div>
-		<!-- address transaction -->
-		<!-- <div class="container" id="addressform2">
-			<form action="index.php" method="get">
-				<label for="address">Address</label>
-				<input type="text" name="address" id="address" />
-				<input type="submit" value="Submit" />
-			</form>
-		</div> -->
+		<!-- media results -->
+		<div class="container" id="mediaResults"></div>
 		<div class="container" id="result"></div>
 		<script>
 			const getTxidInfo = async (txid) => {
@@ -112,6 +106,37 @@
 
 			const getTxidInfoAndRender = async (txid) => {
 				const data = await getTxidInfo(txid);
+				const { transaction, contexts } = data;
+				console.log(contexts);
+				let base64 = transaction;
+				// if contexts array includes a mime type of image, video, or audio, render the media
+				const mediaTypes = ["image", "video", "audio"];
+				// contexts might include "image/jpeg", "video/mp4", "audio/mpeg and others
+				// if contexts includes "image/jpeg" or "image/png" render the image
+				// if contexts includes "video/mp4" render the video
+				// if contexts includes "audio/mpeg" render the audio
+				//check all contexts and render the media
+				//check if context includes anything with "/" and render the media
+				const mediaResults = document.getElementById("mediaResults");
+				mediaResults.innerHTML = "";
+				contexts.forEach((context) => {
+					let contextType = context.split("/")[0];
+					if (mediaTypes.includes(contextType)) {
+						if (contextType === "image") {
+							contextType = "img";
+						}
+						const media = document.createElement(contextType);
+						media.setAttribute("controls", "");
+						media.setAttribute("src", `data:${context};base64,${base64}`);
+						const dataurl = `data:${context};base64,${base64}`;
+						console.log(dataurl);
+						// set the width of the media to 100%
+						media.style.width = "100%";
+
+						mediaResults.appendChild(media);
+					}
+				});
+
 				const result = document.getElementById("result");
 				result.innerHTML = JSON.stringify(data, null, 2);
 			};

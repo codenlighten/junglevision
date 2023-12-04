@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<script src="https://unpkg.com/bsv@1.5"></script>
+		<script src="https://cdn.jsdelivr.net/npm/bsv@1.5.0/bsv-message.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/bsv@1.5.0/bsv-mnemonic.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/bsv@1.5.0/bsv-ecies.min.js"></script>
+		<title>Jungle Pub</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+
+			body {
+				font-family: sans-serif;
+				margin: 0;
+				padding: 0;
+				word-wrap: break-word;
+				background-color: #fff;
+			}
+
+			.container {
+				margin: 0 auto;
+				max-width: 800px;
+				padding: 1rem;
+				background-color: #eee;
+			}
+
+			#header {
+				text-align: center;
+			}
+
+			#mykeys {
+				text-align: center;
+			}
+
+			#importMnemonic {
+				text-align: center;
+			}
+
+			#publishMedia {
+				text-align: center;
+			}
+
+			label {
+				display: block;
+				margin-bottom: 0.5rem;
+			}
+
+			input[type="text"] {
+				border: 1px solid #ccc;
+				border-radius: 0.25rem;
+				font-size: 1rem;
+				padding: 0.5rem;
+				width: 100%;
+			}
+
+			input[type="file"] {
+				border: 1px solid #ccc;
+				border-radius: 0.25rem;
+				font-size: 1rem;
+				padding: 0.5rem;
+				width: 100%;
+			}
+
+			input[type="submit"] {
+				background-color: #333;
+				border: 1px solid #333;
+				border-radius: 0.25rem;
+				color: #fff;
+				cursor: pointer;
+				font-size: 1rem;
+				padding: 0.5rem;
+				width: 100%;
+			}
+
+			input[type="submit"]:hover {
+				background-color: #444;
+				border: 1px solid #444;
+			}
+
+			input[type="submit"]:active {
+				background-color: #555;
+				border: 1px solid #555;
+			}
+
+			input[type="submit"]:disabled {
+				background-color: #ccc;
+				border: 1px solid #ccc;
+				cursor: not-allowed;
+			}
+
+			input[type="submit"]:disabled:hover {
+				background-color: #ccc;
+				border: 1px solid #ccc;
+			}
+
+			input[type="submit"]:disabled:active {
+				background-color: #ccc;
+				border: 1px solid #ccc;
+			}
+
+			#result {
+				background-color: #eee;
+				padding: 1rem;
+				white-space: pre-wrap;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container" id="header">
+			<h1>Jungle Pub</h1>
+		</div>
+		<div class="container" id="mykeys">
+			<h2>My Keys</h2>
+			<p id="address"></p>
+			<p id="balance"></p>
+			<p id="mnemonic"></p>
+			<button id="revealMnemonic">Reveal Mnemonic</button>
+		</div>
+		<div class="container" id="importMnemonic">
+			<h2>Import Mnemonic</h2>
+			<input type="text" id="mnemonicImport" />
+			<button id="submitMnemonic">Submit Mnemonic</button>
+		</div>
+		<div class="container" id="publishMedia">
+			<h2>Publish Media</h2>
+			<label for="media">Media</label>
+			<input type="file" id="media" />
+			<label for="title">Title</label>
+			<input type="text" id="title" />
+			<label for="description">Description</label>
+			<input type="text" id="description" />
+			<label for="tags">Tags</label>
+			<input type="text" id="tags" />
+			<button id="submitMedia">Submit</button>
+		</div>
+		<div class="container" id="result"></div>
+		<script>
+			const Mnemonic = bsv.Mnemonic;
+			const HDPrivateKey = bsv.HDPrivateKey;
+			const Networks = bsv.Networks;
+			const Address = bsv.Address;
+			const sign = bsv.crypto.ECDSA.sign;
+			const verify = bsv.crypto.ECDSA.verify;
+			const Message = bsv.Message;
+			const Hash = bsv.crypto.Hash;
+			const Buffer = bsv.deps.Buffer;
+
+			const generateMnemonic = () => {
+				const addresses = [];
+				const mnemonic = new Mnemonic(Mnemonic.Words.ENGLISH);
+				const root = HDPrivateKey.fromSeed(mnemonic.toSeed(), Networks.livenet);
+				const xpub = root.hdPublicKey;
+				for (let i = 0; i < 22; i++) {
+					// Derive private key for the address using deriveChild
+					const child = root.deriveChild(`m/44'/0'/0'/0/${i}`);
+					const childPubKey = child.hdPublicKey.publicKey;
+					// Create an address from the public key
+					const address = new Address(childPubKey, Networks.livenet);
+					// Store address information
+					const addressObj = {
+						path: `m/44'/0'/0'/0/${i}`,
+						address: address.toString(),
+						xpub: xpub.toString(),
+						publicKey: childPubKey.toString(),
+						privateKey: child.privateKey.toString(), // Caution with logging private keys
+					};
+					addresses.push(addressObj);
+				}
+
+				console.log("Mnemonic:", mnemonic.toString());
+				console.log(addresses);
+				return { addresses, mnemonic };
+			};
+
+			const generateStoreLocalStorageKeys = () => {
+				const { addresses, mnemonic } = generateMnemonic();
+				localStorage.setItem("mnemonic", mnemonic.toString());
+				localStorage.setItem("addresses", JSON.stringify(addresses));
+			};
+
+			const signMessage = (message, privateKey) => {
+				const hash = Hash.sha256(Buffer.from(message));
+				const privKey = bsv.PrivateKey.fromString(privateKey);
+				const sig = sign(hash, privKey);
+				return sig;
+			};
+
+			const verifyMessage = (message, sig, publicKey) => {
+				const hash = Hash.sha256(Buffer.from(message));
+				const pubKey = bsv.PublicKey.fromString(publicKey);
+				return verify(hash, sig, pubKey);
+			};
+
+			const test = () => {
+				const addresses = generateMnemonic();
+				const message = "Hello world";
+				const sig = signMessage(message, addresses[0].privateKey);
+				const verified = verifyMessage(message, sig, addresses[0].publicKey);
+				console.log(verified);
+			};
+
+			// test();
+
+			//xpub address
+			const generateNewAddressFromXpub = (xpub, index) => {
+				const hdPublicKey = new HDPrivateKey(xpub).hdPublicKey;
+				const publicKey = hdPublicKey.deriveChild(
+					`m/44'/0'/0'/0/${index}`
+				).publicKey;
+				const address = new Address(publicKey);
+				return address.toString();
+			};
+
+			const generateNewAddressFromPrivateKey = (privateKey, index) => {
+				const hdPrivateKey = new HDPrivateKey(privateKey);
+				const publicKey = hdPrivateKey.deriveChild(
+					`m/44'/0'/0'/0/${index}`
+				).publicKey;
+				const address = new Address(publicKey);
+				return address.toString();
+			};
+
+			const generateNewAddressFromMnemonic = (mnemonic, index) => {
+				const hdPrivateKey = HDPrivateKey.fromSeed(
+					new Mnemonic(mnemonic).toSeed(),
+					Networks.livenet
+				);
+				const publicKey = hdPrivateKey.deriveChild(
+					`m/44'/0'/0'/0/${index}`
+				).publicKey;
+				const address = new Address(publicKey);
+				const privateKey = hdPrivateKey.deriveChild(
+					`m/44'/0'/0'/0/${index}`
+				).privateKey;
+				return {
+					address: address.toString(),
+					privateKey,
+				};
+			};
+
+			const generateNewAddress = (index) => {
+				const mnemonic = localStorage.getItem("mnemonic");
+				const addresses = JSON.parse(mnemonic);
+				const address = addresses[0].address;
+				const privateKey = addresses[0].privateKey;
+				return {
+					address,
+					privateKey,
+				};
+			};
+
+			//onload check if mnemonic is in local storage
+			window.onload = () => {
+				const mnemonic = localStorage.getItem("mnemonic");
+				if (!mnemonic) {
+					generateStoreLocalStorageKeys();
+				}
+				const addresses = JSON.parse(localStorage.getItem("addresses"));
+				const address = addresses[0].address;
+				const privateKey = addresses[0].privateKey;
+				document.getElementById("address").innerHTML = address;
+				getBalance(address).then((balance) => {
+					document.getElementById("balance").innerHTML = balance;
+				});
+				document.getElementById("mnemonic").innerHTML = mnemonic;
+			};
+
+			const getBalance = async (address) => {
+				const response = await fetch(
+					`https://api.whatsonchain.com/v1/bsv/main/address/${address}/balance`
+				);
+				const data = await response.json();
+				const confirmed = data.confirmed;
+				const unconfirmed = data.unconfirmed;
+				const balance = confirmed + unconfirmed;
+				return balance;
+			};
+
+			const getUtxos = async (address) => {
+				const response = await fetch(
+					`https://api.whatsonchain.com/v1/bsv/main/address/${address}/unspent`
+				);
+				const data = await response.json();
+				return data;
+			};
+
+			const toBase64 = (file) =>
+				new Promise((resolve, reject) => {
+					const reader = new FileReader();
+					reader.readAsDataURL(file);
+					reader.onload = () => resolve(reader.result);
+					reader.onerror = (error) => reject(error);
+				});
+			const broadcast = async (tx) => {
+				const response = await fetch(
+					`https://api.whatsonchain.com/v1/bsv/main/tx/raw`,
+					{
+						method: "POST",
+						body: JSON.stringify({
+							txhex: tx,
+						}),
+					}
+				);
+				const data = await response.json();
+				return data;
+			};
+
+			const publish = async () => {
+				const media = document.getElementById("media").files[0];
+				const title = document.getElementById("title").value;
+				const description = document.getElementById("description").value;
+				const tags = document.getElementById("tags").value;
+				if (!media || !title || !description || !tags) {
+					alert("Please fill out all fields");
+					return;
+				}
+				// const base64Data
+				const dataurl = await toBase64(media);
+				const base64Data = dataurl.split(",")[1];
+				const mime = media.type;
+				console.log(mime);
+				const mnemonic = localStorage.getItem("mnemonic");
+				const addresses = JSON.parse(localStorage.getItem("addresses"));
+				const address = addresses[0].address;
+
+				const utxos = await getUtxos(address);
+				console.log(utxos);
+				const utxoArray = utxos.map((utxo) => {
+					return {
+						txid: utxo.tx_hash,
+						vout: utxo.tx_pos,
+						satoshis: utxo.value,
+						script: bsv.Script.buildPublicKeyHashOut(address).toHex(),
+					};
+				});
+				console.log(utxoArray);
+				const tx = new bsv.Transaction().from(utxoArray);
+				console.log(tx);
+				const data = {
+					title,
+					description,
+					tags,
+				};
+				console.log(base64Data);
+				const bitcomArray = [
+					"1PTVr1hpgTTTDnFtPt4T7te3Vgjanr8kbx",
+					base64Data,
+					mime,
+					"utf-8",
+					"|",
+					"1PuQa7K62MiKCtssSLKy1kh56WWU7MtUR5",
+					"SET",
+					"app",
+					"junglevision",
+					"type",
+					"post",
+					"encoding",
+					"base64",
+					"filename",
+					media.name,
+					"title",
+					title,
+					"description",
+					description,
+					"tags",
+					tags,
+					"mimetype",
+					media.type,
+					"dataurl",
+					dataurl,
+					// "media",
+					// base64Data,
+				];
+				//const base64Array
+				const base64Array = [];
+				bitcomArray.forEach((item, i) => {
+					if (i != 1) {
+						base64Array.push(Buffer.from(item).toString("base64"));
+					} else {
+						base64Array.push(item);
+					}
+				});
+				//build safe data
+				tx.addOutput(
+					new bsv.Transaction.Output({
+						script: bsv.Script.buildSafeDataOut(base64Array, "base64"),
+						satoshis: 0,
+					})
+				);
+				//feePerKb
+				const feePerKb = 10;
+				//add fee
+				tx.feePerKb(feePerKb);
+				//add change address
+				tx.change(address);
+				//sign transaction
+				tx.sign(addresses[0].privateKey);
+				//serialize transaction
+				const serialized = tx.serialize();
+				console.log(serialized);
+				//broadcast transaction
+				const txid = await broadcast(serialized);
+				console.log(txid);
+				alert(`Transaction broadcasted: ${txid}`);
+				//add transaction to results
+				const result = document.getElementById("result");
+				result.innerHTML = `Transaction broadcasted: ${txid}`;
+			};
+
+			const submitMedia = document.getElementById("submitMedia");
+			submitMedia.addEventListener("click", publish);
+		</script>
+	</body>
+</html>
