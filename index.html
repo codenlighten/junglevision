@@ -90,6 +90,8 @@
 			}
 			#mediaResults {
 				margin: 0 auto;
+				display: block;
+				width: 100%;
 				max-width: 400px;
 			}
 		</style>
@@ -232,21 +234,9 @@
 				const dataurl = `data:${mimetype};base64,${media}`;
 				console.log(dataurl);
 				const mediaResults = document.getElementById("mediaResults");
-				mediaResults.innerHTML = `<${elementType} src="${dataurl}" controls></${elementType}>`;
-				//width="100%"
-				mediaResults.style.width = "100%";
-				mediaResults.style.maxWidth = "400px";
-				mediaResults.style.margin = "0 auto";
-				mediaResults.style.display = "block";
-				//add controls to video and audio
-				if (elementType === "video" || elementType === "audio") {
-					mediaResults.setAttribute("controls", "");
-				}
-
-				// const result = document.getElementById("result");
-				// result.innerHTML = JSON.stringify(data, null, 2);
-
-				//
+				const el = document.createElement(elementType);
+				el.src = dataurl;
+				mediaResults.appendChild(el);
 			};
 
 			const urlParams = new URLSearchParams(window.location.search);
