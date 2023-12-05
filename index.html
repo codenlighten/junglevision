@@ -234,6 +234,10 @@
 				mediaResults.style.maxWidth = "400px";
 				mediaResults.style.margin = "0 auto";
 				mediaResults.style.display = "block";
+				//add controls to video and audio
+				if (elementType === "video" || elementType === "audio") {
+					mediaResults.setAttribute("controls", "");
+				}
 
 				// const result = document.getElementById("result");
 				// result.innerHTML = JSON.stringify(data, null, 2);
