@@ -268,7 +268,7 @@
 
 			const getAddressInfoAndRender = async (address) => {
 				const data = await getAddressInfo(address);
-				const result = document.getElementById("result");
+				const result = document.getElementById("mediaResults");
 				result.innerHTML = JSON.stringify(data, null, 2);
 			};
 
