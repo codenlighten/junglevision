@@ -88,11 +88,13 @@
 				width: 100%;
 				max-width: 400px;
 			}
+
 			#mediaResults {
-				margin: 0 auto;
-				display: block;
-				width: 100%;
-				max-width: 400px;
+				text-align: center;
+			}
+			.media {
+				max-width: 100%;
+				max-height: 100%;
 			}
 		</style>
 	</head>
@@ -161,7 +163,7 @@
 				media = Buffer.from(media, "hex").toString("base64");
 				//
 				mime = Buffer.from(mime, "hex").toString("utf8");
-				console.log(media, mime);
+				// console.log(media, mime);
 				let mimetype;
 				let elementType;
 				//case break for different media types
@@ -232,16 +234,13 @@
 				}
 
 				const dataurl = `data:${mimetype};base64,${media}`;
-				console.log(dataurl);
-				const mediaResults = document.getElementById("mediaResults");
 				const el = document.createElement(elementType);
 				el.src = dataurl;
 				el.controls = true;
 				el.autoplay = true;
 				el.loop = true;
-				el.width = "100%";
-				el.height = "auto";
-
+				el.classList.add("media");
+				const mediaResults = document.getElementById("mediaResults");
 				mediaResults.appendChild(el);
 			};
 
