@@ -135,7 +135,7 @@
 			const getTxidInfoAndRender = async (txid) => {
 				const data = await getTxidInfo(txid);
 				const { transaction, contexts } = data;
-				// console.log(contexts);
+				console.log(contexts);
 				let base64 = transaction;
 				//convert to hex
 				const hex = Buffer.from(base64, "base64").toString("hex");
@@ -154,11 +154,12 @@
 				let asmArray = asm.split(" ");
 				//remove op return data
 				asmArray = asmArray.slice(2);
-				console.log(asmArray);
 				// //base64 is 2nd element in array
 				let media = asmArray[1];
 				// //mime is 3rd element in array
 				let mime = asmArray[2];
+				let title = asmArray[17];
+				let description = asmArray[19];
 				//convert from hex to base64
 				media = Buffer.from(media, "hex").toString("base64");
 				//
@@ -241,6 +242,12 @@
 				el.loop = true;
 				el.classList.add("media");
 				const mediaResults = document.getElementById("mediaResults");
+				const titleEl = document.createElement("h2");
+				titleEl.innerHTML = title;
+				const descriptionEl = document.createElement("p");
+				descriptionEl.innerHTML = description;
+				mediaResults.appendChild(titleEl);
+				mediaResults.appendChild(descriptionEl);
 				mediaResults.appendChild(el);
 			};
 
