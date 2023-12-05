@@ -107,19 +107,12 @@
 		</div>
 		<div class="container" id="txform">
 			<form action="index.php" method="get">
-				<label for="txid">Transaction ID</label>
+				<label for="txid">Transaction ID or Address</label>
 				<input type="text" name="txid" id="txid" />
 				<input type="submit" value="Submit" />
 			</form>
 		</div>
-		<!-- address form -->
-		<div class="container" id="addressform">
-			<form action="index.php" method="get">
-				<label for="address">Address</label>
-				<input type="text" name="address" id="address" />
-				<input type="submit" value="Submit" />
-			</form>
-		</div>
+
 		<!-- media results -->
 		<div class="container" id="mediaResults"></div>
 		<!-- <div class="container" id="result"></div> -->
@@ -280,8 +273,12 @@
 			const form = document.getElementById("txform");
 			form.addEventListener("submit", (event) => {
 				event.preventDefault();
-				const txid = document.getElementById("txid").value;
-				getTxidInfoAndRender(txid);
+				let txid = document.getElementById("txid").value;
+				if (txid.length === 64) {
+					getTxidInfoAndRender(txid);
+				} else {
+					getAddressInfoAndRender(txid);
+				}
 			});
 
 			// https://junglebus.gorillapool.io/v1/address/get/{address}
