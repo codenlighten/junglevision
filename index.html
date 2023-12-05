@@ -29,7 +29,6 @@
 				padding: 0;
 				word-wrap: break-word;
 				background-color: #191919;
-				color: #fff;
 				width: 100vw;
 			}
 
@@ -163,7 +162,7 @@
 				// //mime is 3rd element in array
 				let mime = bufArray[2].toString("utf8");
 				// separate the rest of the data into key value pairs after the 6th element
-				const dataPairs = bufArray.slice(6);
+				const dataPairs = bufArray.slice(5);
 				// convert the data pairs into an object
 				const dataObj = {};
 				dataPairs.forEach((pair) => {
