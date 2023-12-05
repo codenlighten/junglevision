@@ -4,7 +4,7 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<!-- favicon.png -->
-		<link rel="icon" href="favicon.png" />
+		<link rel="icon" href="favicon2.png" />
 		<!-- twitter -->
 		<meta name="twitter:card" content="summary_large_image" />
 		<meta name="twitter:site" content="@junglevision" />
@@ -115,6 +115,7 @@
 		<div class="container" id="mediaResults"></div>
 		<div class="container" id="result"></div>
 		<script>
+			const Buffer = bsv.deps.Buffer;
 			const getTxidInfo = async (txid) => {
 				const response = await fetch(
 					`https://junglebus.gorillapool.io/v1/transaction/get/${txid}`
@@ -126,38 +127,118 @@
 			const getTxidInfoAndRender = async (txid) => {
 				const data = await getTxidInfo(txid);
 				const { transaction, contexts } = data;
-				console.log(contexts);
+				// console.log(contexts);
 				let base64 = transaction;
-				// if contexts array includes a mime type of image, video, or audio, render the media
-				const mediaTypes = ["image", "video", "audio"];
-				// contexts might include "image/jpeg", "video/mp4", "audio/mpeg and others
-				// if contexts includes "image/jpeg" or "image/png" render the image
-				// if contexts includes "video/mp4" render the video
-				// if contexts includes "audio/mpeg" render the audio
-				//check all contexts and render the media
-				//check if context includes anything with "/" and render the media
+				//convert to hex
+				const hex = Buffer.from(base64, "base64").toString("hex");
+				//decode the transaction hex
+				const tx = new bsv.Transaction(hex);
+
+				// get the first output
+				const output = tx.outputs[0];
+				// get the script
+				const script = output.script;
+				// get the script chunks
+				console.log(script);
+				// convert the script to asm
+				const asm = script.toASM();
+				// split the asm into an array
+				let asmArray = asm.split(" ");
+				//remove op return data
+				asmArray = asmArray.slice(2);
+				console.log(asmArray);
+				// //base64 is 2nd element in array
+				let media = asmArray[1];
+				// //mime is 3rd element in array
+				let mime = asmArray[2];
+				//convert from hex to base64
+				media = Buffer.from(media, "hex").toString("base64");
+				//
+				mime = Buffer.from(mime, "hex").toString("utf8");
+				console.log(media, mime);
+				let mimetype;
+				let elementType;
+				//case break for different media types
+				switch (mime) {
+					case "image/jpeg":
+						mimetype = "image/jpeg";
+						elementType = "img";
+						break;
+					case "image/png":
+						mimetype = "image/png";
+						elementType = "img";
+						break;
+					case "image/gif":
+						mimetype = "image/gif";
+						elementType = "img";
+						break;
+					case "video/mp4":
+						mimetype = "video/mp4";
+						elementType = "video";
+						break;
+					case "video/quicktime":
+						mimetype = "video/quicktime";
+						elementType = "video";
+						break;
+					case "video/x-msvideo":
+						mimetype = "video/x-msvideo";
+						elementType = "video";
+						break;
+					case "video/x-matroska":
+						mimetype = "video/x-matroska";
+						elementType = "video";
+						break;
+					case "video/webm":
+						mimetype = "video/webm";
+						elementType = "video";
+						break;
+					case "audio/mpeg":
+						mimetype = "audio/mpeg";
+						elementType = "audio";
+						break;
+					case "audio/mp4":
+						mimetype = "audio/mp4";
+						elementType = "audio";
+						break;
+					case "audio/ogg":
+						mimetype = "audio/ogg";
+						elementType = "audio";
+						break;
+					case "audio/webm":
+						mimetype = "audio/webm";
+						elementType = "audio";
+						break;
+					case "audio/x-wav":
+						mimetype = "audio/x-wav";
+						elementType = "audio";
+						break;
+					case "application/pdf":
+						mimetype = "application/pdf";
+						elementType = "embed";
+						break;
+					case "application/zip":
+						mimetype = "application/zip";
+						elementType = "embed";
+						break;
+					default:
+						mimetype = "text/plain";
+						break;
+				}
+
+				const dataurl = `data:${mimetype};base64,${media}`;
+				console.log(dataurl);
 				const mediaResults = document.getElementById("mediaResults");
-				mediaResults.innerHTML = "";
-				contexts.forEach((context) => {
-					let contextType = context.split("/")[0];
-					if (mediaTypes.includes(contextType)) {
-						if (contextType === "image") {
-							contextType = "img";
-						}
-						const media = document.createElement(contextType);
-						media.setAttribute("controls", "");
-						media.setAttribute("src", `data:${context};base64,${base64}`);
-						const dataurl = `data:${context};base64,${base64}`;
-						console.log(dataurl);
-						// set the width of the media to 100%
-						media.style.width = "100%";
+				mediaResults.innerHTML = `<${elementType} src="${dataurl}" controls></${elementType}>`;
+				//width="100%"
+				mediaResults.style.width = "100%";
+				mediaResults.style.maxWidth = "400px";
+				mediaResults.style.margin = "0 auto";
+				mediaResults.style.display = "block";
 
-						mediaResults.appendChild(media);
-					}
-				});
+				// const result = document.getElementById("result");
+				// result.innerHTML = JSON.stringify(data, null, 2);
 
-				const result = document.getElementById("result");
-				result.innerHTML = JSON.stringify(data, null, 2);
+				//
 			};
 
 			const urlParams = new URLSearchParams(window.location.search);
