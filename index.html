@@ -236,6 +236,12 @@
 				const mediaResults = document.getElementById("mediaResults");
 				const el = document.createElement(elementType);
 				el.src = dataurl;
+				el.controls = true;
+				el.autoplay = true;
+				el.loop = true;
+				el.width = "100%";
+				el.height = "auto";
+
 				mediaResults.appendChild(el);
 			};
 
