@@ -268,8 +268,18 @@
 				getBalance(address).then((balance) => {
 					document.getElementById("balance").innerHTML = balance;
 				});
-				document.getElementById("mnemonic").innerHTML = mnemonic;
+				document.getElementById("mnemonic").innerHTML = "";
 			};
+			document
+				.getElementById("revealMnemonic")
+				.addEventListener("click", () => {
+					if (document.getElementById("mnemonic").innerHTML) {
+						document.getElementById("mnemonic").innerHTML = "";
+						return;
+					}
+					const mnemonic = localStorage.getItem("mnemonic");
+					document.getElementById("mnemonic").innerHTML = mnemonic;
+				});
 
 			const getBalance = async (address) => {
 				const response = await fetch(
