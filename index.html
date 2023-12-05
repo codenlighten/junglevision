@@ -3,6 +3,20 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<!-- favicon.png -->
+		<link rel="icon" href="favicon.png" />
+		<!-- twitter -->
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:site" content="@junglevision" />
+		<meta name="twitter:creator" content="@junglevision" />
+		<meta name="twitter:title" content="Jungle Vision" />
+		<meta
+			name="twitter:description"
+			content="View transaction details on the BSV Blockchain with Jungle Bus"
+		/>
+		<meta name="twitter:image" content="https://junglevision.online/logo.png" />
+
+		<script src="https://unpkg.com/bsv@1.5"></script>
 		<title>Jungle Vision</title>
 		<style>
 			* {
@@ -10,11 +24,11 @@
 			}
 
 			body {
-				font-family: sans-serif;
+				font-family: "Courier New", Courier, monospace;
 				margin: 0;
 				padding: 0;
 				word-wrap: break-word;
-				background-color: #fff;
+				background-color: #191919;
 			}
 
 			.container {
@@ -70,11 +84,16 @@
 				background-color: #444;
 				border-color: #444;
 			}
+			#logo {
+				width: 100%;
+				max-width: 400px;
+			}
 		</style>
 	</head>
 	<body>
 		<div class="container" id="header">
 			<h1>Jungle Vision</h1>
+			<img src="logo.png" alt="" id="logo" />
 			<p>View transaction details on the BSV Blockchain with Jungle Bus</p>
 		</div>
 		<div class="container" id="txform">
