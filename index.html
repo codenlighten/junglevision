@@ -162,14 +162,27 @@
 				// //mime is 3rd element in array
 				let mime = bufArray[2].toString("utf8");
 				// separate the rest of the data into key value pairs after the 6th element
+
 				const dataPairs = bufArray.slice(5);
 				// convert the data pairs into an object
 				const dataObj = {};
-				dataPairs.forEach((pair) => {
-					const key = pair.slice(0, 1).toString("utf8");
-					const value = pair.slice(1).toString("utf8");
-					dataObj[key] = value;
+				dataPairs.forEach((pair, i) => {
+					if (i % 2 === 0) {
+						dataObj[pair.toString("utf8")] = dataPairs[i + 1].toString("utf8");
+					}
 				});
+				let title = "Jungle Vision";
+				if (dataObj.title) {
+					title = dataObj.title;
+				}
+				if (dataObj.text) {
+					title = dataObj.text;
+				}
+				let description =
+					"View transaction details on the BSV Blockchain with Jungle Bus";
+				if (dataObj.description) {
+					description = dataObj.description;
+				}
 				console.log(dataObj);
 				// console.log(media, mime);
 				let mimetype;
@@ -249,12 +262,12 @@
 				el.loop = true;
 				el.classList.add("media");
 				const mediaResults = document.getElementById("mediaResults");
-				// const titleEl = document.createElement("h2");
-				// titleEl.innerHTML = title;
-				// const descriptionEl = document.createElement("p");
-				// descriptionEl.innerHTML = description;
-				// mediaResults.appendChild(titleEl);
-				// mediaResults.appendChild(descriptionEl);
+				const titleEl = document.createElement("h2");
+				titleEl.innerHTML = title;
+				const descriptionEl = document.createElement("p");
+				descriptionEl.innerHTML = description;
+				mediaResults.appendChild(titleEl);
+				mediaResults.appendChild(descriptionEl);
 				mediaResults.appendChild(el);
 			};
 
