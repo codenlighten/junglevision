@@ -280,6 +280,8 @@
 				.addEventListener("click", () => {
 					if (document.getElementById("mnemonic").innerHTML) {
 						document.getElementById("mnemonic").innerHTML = "";
+						document.getElementById("revealMnemonic").innerHTML =
+							"Reveal Mnemonic";
 						return;
 					}
 					const mnemonic = localStorage.getItem("mnemonic");
