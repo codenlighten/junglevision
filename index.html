@@ -104,13 +104,28 @@
 				max-width: 100%;
 				max-height: 100%;
 			}
+			#description {
+				font-size: 1.5rem;
+				font-weight: bold;
+			}
+			@media (max-width: 600px) {
+				#logo {
+					width: 100%;
+					max-width: 200px;
+					border-radius: 50%;
+					border: 1px solid #333;
+					background-color: #5d5c5c90;
+				}
+			}
 		</style>
 	</head>
 	<body>
 		<div class="container" id="header">
-			<h1>Jungle Vision</h1>
+			<!-- <h1>Jungle Vision</h1> -->
 			<img src="logo2.png" alt="" id="logo" />
-			<p>View transaction details on the BSV Blockchain with Jungle Bus</p>
+			<p id="description">
+				View transaction details on the BSV Blockchain with Jungle Bus
+			</p>
 		</div>
 		<div class="container" id="txform">
 			<form action="index.php" method="get">
