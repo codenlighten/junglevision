@@ -28,7 +28,7 @@
 				margin: 0;
 				padding: 0;
 				word-wrap: break-word;
-				background-color: #191919;
+				background-color: black;
 				width: 100vw;
 			}
 
@@ -41,6 +41,10 @@
 
 			#header {
 				text-align: center;
+				background-image: url("bg.png");
+				background-size: cover;
+				background-position: center;
+				background-repeat: no-repeat;
 			}
 
 			#form {
@@ -88,6 +92,9 @@
 			#logo {
 				width: 100%;
 				max-width: 400px;
+				border-radius: 50%;
+				border: 1px solid #333;
+				background-color: #5d5c5c90;
 			}
 
 			#mediaResults {
@@ -102,7 +109,7 @@
 	<body>
 		<div class="container" id="header">
 			<h1>Jungle Vision</h1>
-			<img src="logo.png" alt="" id="logo" />
+			<img src="logo2.png" alt="" id="logo" />
 			<p>View transaction details on the BSV Blockchain with Jungle Bus</p>
 		</div>
 		<div class="container" id="txform">
