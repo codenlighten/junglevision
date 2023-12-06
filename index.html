@@ -268,10 +268,9 @@
 						elementType = "p";
 						break;
 				}
-
+				document.getElementById("mediaResults").innerHTML = "";
 				const dataurl = `data:${mimetype};base64,${media}`;
 				let el = document.createElement(elementType);
-				el.innerHTML = "";
 				el.src = dataurl;
 				el.controls = true;
 				el.autoplay = true;
