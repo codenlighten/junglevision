@@ -150,169 +150,179 @@
 			};
 
 			const getTxidInfoAndRender = async (txid) => {
-				const data = await getTxidInfo(txid);
-				// console.log(data);
-				const { transaction, contexts } = data;
-				// console.log(contexts);
-				let base64 = transaction;
-				//convert to hex
-				const hex = Buffer.from(base64, "base64").toString("hex");
-				//decode the transaction hex
-				const tx = new bsv.Transaction(hex);
-
-				// get the first output
-				const output = tx.outputs[0];
-				// get the script
-				const script = output.script;
-				// get the script chunks
-				// console.log(script);
-				// convert the script to asm
-				const asm = script.toASM();
-				// split the asm into an array
-				let asmArray = asm.split(" ");
-				//remove op return data
-				asmArray = asmArray.slice(2);
-				const bufArray = asmArray.map((item) => Buffer.from(item, "hex"));
-				// console.log(bufArray);
-				// //base64 is 2nd element in array
-				let media = bufArray[1].toString("base64");
-				// //mime is 3rd element in array
-				let mime = bufArray[2].toString("utf8");
-				const remaining = bufArray.slice(2).toString("utf8");
-				//turn long string of comma separated elements into array of sections
-				let sections = remaining.split(",");
-				// remove all elements up to "|" character
-				const index = sections.indexOf("|");
-				sections = sections.slice(index + 1);
-				console.log(sections);
-				//remove any "|" characters from the array
-				sections = sections.filter((item) => item !== "|");
-
-				let dataObj = {};
-				sections.forEach((section, i) => {
-					// console.log(section);
-					// console.log(i);
-					if (i % 2 === 0) {
-						// console.log(section);
-						dataObj[section] = sections[i + 1];
+				try {
+					const data = await getTxidInfo(txid);
+					// console.log(data);
+					const { transaction, contexts } = data;
+					// console.log(contexts);
+					let base64 = transaction;
+					//convert to hex
+					const hex = Buffer.from(base64, "base64").toString("hex");
+					//decode the transaction hex
+					const tx = new bsv.Transaction(hex);
+					const outputs = tx.outputs;
+					// get the zero value output
+					const output = outputs.filter((output) => output.satoshis === 0)[0];
+					if (!output) {
+						alert("No op return data found in this transaction");
+						return;
 					}
-				});
-				let title = "Jungle Vision";
-				if (dataObj.title) {
-					title = dataObj.title;
-				}
+					// get the script
+					const script = output.script;
+					// get the script chunks
+					// console.log(script);
+					// convert the script to asm
+					const asm = script.toASM();
+					// split the asm into an array
+					let asmArray = asm.split(" ");
+					console.log(asmArray);
+					//remove op return data
+					asmArray = asmArray.slice(2);
+					const bufArray = asmArray.map((item) => Buffer.from(item, "hex"));
+					console.log(bufArray);
+					// //base64 is 2nd element in array
+					let media = bufArray[1].toString("base64");
+					// //mime is 3rd element in array
+					let mime = bufArray[2].toString("utf8");
+					const remaining = bufArray.slice(2).toString("utf8");
+					//turn long string of comma separated elements into array of sections
+					let sections = remaining.split(",");
+					// remove all elements up to "|" character
+					const index = sections.indexOf("|");
+					sections = sections.slice(index + 1);
+					console.log(sections);
+					//remove any "|" characters from the array
+					sections = sections.filter((item) => item !== "|");
 
-				if (dataObj.description) {
-					title = dataObj.description;
-				}
+					let dataObj = {};
+					sections.forEach((section, i) => {
+						// console.log(section);
+						// console.log(i);
+						if (i % 2 === 0) {
+							// console.log(section);
+							dataObj[section] = sections[i + 1];
+						}
+					});
+					let title = "Jungle Vision";
+					if (dataObj.title) {
+						title = dataObj.title;
+					}
 
-				let description =
-					"View transaction details on the BSV Blockchain with Jungle Bus";
-				if (dataObj.description) {
-					description = dataObj.description;
+					if (dataObj.description) {
+						title = dataObj.description;
+					}
+
+					let description =
+						"View transaction details on the BSV Blockchain with Jungle Bus";
+					if (dataObj.description) {
+						description = dataObj.description;
+					}
+					if (dataObj.app && !dataObj.title) {
+						title = dataObj.app.toUpperCase();
+						//reverse the title
+						dataObj.description = dataObj.app.split("").reverse().join("");
+						description = dataObj.description;
+					}
+					if (dataObj.text) {
+						title = dataObj.text;
+					}
+					console.log(dataObj);
+					// console.log(media, mime);
+					let mimetype;
+					let elementType;
+					//case break for different media types
+					switch (mime) {
+						case "image/jpeg":
+							mimetype = "image/jpeg";
+							elementType = "img";
+							break;
+						case "image/png":
+							mimetype = "image/png";
+							elementType = "img";
+							break;
+						case "image/gif":
+							mimetype = "image/gif";
+							elementType = "img";
+							break;
+						case "video/mp4":
+							mimetype = "video/mp4";
+							elementType = "video";
+							break;
+						case "video/quicktime":
+							mimetype = "video/quicktime";
+							elementType = "video";
+							break;
+						case "video/x-msvideo":
+							mimetype = "video/x-msvideo";
+							elementType = "video";
+							break;
+						case "video/x-matroska":
+							mimetype = "video/x-matroska";
+							elementType = "video";
+							break;
+						case "video/webm":
+							mimetype = "video/webm";
+							elementType = "video";
+							break;
+						case "audio/mpeg":
+							mimetype = "audio/mpeg";
+							elementType = "audio";
+							break;
+						case "audio/mp4":
+							mimetype = "audio/mp4";
+							elementType = "audio";
+							break;
+						case "audio/ogg":
+							mimetype = "audio/ogg";
+							elementType = "audio";
+							break;
+						case "audio/webm":
+							mimetype = "audio/webm";
+							elementType = "audio";
+							break;
+						case "audio/x-wav":
+							mimetype = "audio/x-wav";
+							elementType = "audio";
+							break;
+						case "application/pdf":
+							mimetype = "application/pdf";
+							elementType = "embed";
+							break;
+						case "application/zip":
+							mimetype = "application/zip";
+							elementType = "embed";
+							break;
+						default:
+							mimetype = "text/plain";
+							elementType = "p";
+							break;
+					}
+					document.getElementById("mediaResults").innerHTML = "";
+					const dataurl = `data:${mimetype};base64,${media}`;
+					let el = document.createElement(elementType);
+					el.src = dataurl;
+					el.controls = true;
+					el.autoplay = true;
+					el.loop = true;
+					el.classList.add("media");
+					//if text,modify the element to use innerHTML
+					if (elementType === "p") {
+						// convert the base64 to utf8
+						const utf8 = Buffer.from(media, "base64").toString("utf8");
+						el.innerHTML = utf8;
+					}
+					const mediaResults = document.getElementById("mediaResults");
+					const titleEl = document.createElement("h2");
+					titleEl.innerHTML = title;
+					const descriptionEl = document.createElement("p");
+					descriptionEl.innerHTML = description;
+					mediaResults.appendChild(titleEl);
+					mediaResults.appendChild(descriptionEl);
+					mediaResults.appendChild(el);
+				} catch (error) {
+					alert("No op return data found in this transaction");
+					return;
 				}
-				if (dataObj.app && !dataObj.title) {
-					title = dataObj.app.toUpperCase();
-					//reverse the title
-					dataObj.description = dataObj.app.split("").reverse().join("");
-					description = dataObj.description;
-				}
-				if (dataObj.text) {
-					title = dataObj.text;
-				}
-				console.log(dataObj);
-				// console.log(media, mime);
-				let mimetype;
-				let elementType;
-				//case break for different media types
-				switch (mime) {
-					case "image/jpeg":
-						mimetype = "image/jpeg";
-						elementType = "img";
-						break;
-					case "image/png":
-						mimetype = "image/png";
-						elementType = "img";
-						break;
-					case "image/gif":
-						mimetype = "image/gif";
-						elementType = "img";
-						break;
-					case "video/mp4":
-						mimetype = "video/mp4";
-						elementType = "video";
-						break;
-					case "video/quicktime":
-						mimetype = "video/quicktime";
-						elementType = "video";
-						break;
-					case "video/x-msvideo":
-						mimetype = "video/x-msvideo";
-						elementType = "video";
-						break;
-					case "video/x-matroska":
-						mimetype = "video/x-matroska";
-						elementType = "video";
-						break;
-					case "video/webm":
-						mimetype = "video/webm";
-						elementType = "video";
-						break;
-					case "audio/mpeg":
-						mimetype = "audio/mpeg";
-						elementType = "audio";
-						break;
-					case "audio/mp4":
-						mimetype = "audio/mp4";
-						elementType = "audio";
-						break;
-					case "audio/ogg":
-						mimetype = "audio/ogg";
-						elementType = "audio";
-						break;
-					case "audio/webm":
-						mimetype = "audio/webm";
-						elementType = "audio";
-						break;
-					case "audio/x-wav":
-						mimetype = "audio/x-wav";
-						elementType = "audio";
-						break;
-					case "application/pdf":
-						mimetype = "application/pdf";
-						elementType = "embed";
-						break;
-					case "application/zip":
-						mimetype = "application/zip";
-						elementType = "embed";
-						break;
-					default:
-						mimetype = "text/plain";
-						elementType = "p";
-						break;
-				}
-				document.getElementById("mediaResults").innerHTML = "";
-				const dataurl = `data:${mimetype};base64,${media}`;
-				let el = document.createElement(elementType);
-				el.src = dataurl;
-				el.controls = true;
-				el.autoplay = true;
-				el.loop = true;
-				el.classList.add("media");
-				//if text,modify the element to use innerHTML
-				if (elementType === "p") {
-					// convert the base64 to utf8
-					const utf8 = Buffer.from(media, "base64").toString("utf8");
-					el.innerHTML = utf8;
-				}
-				const mediaResults = document.getElementById("mediaResults");
-				const titleEl = document.createElement("h2");
-				titleEl.innerHTML = title;
-				const descriptionEl = document.createElement("p");
-				descriptionEl.innerHTML = description;
-				mediaResults.appendChild(titleEl);
-				mediaResults.appendChild(descriptionEl);
-				mediaResults.appendChild(el);
 			};
 
 			const urlParams = new URLSearchParams(window.location.search);
