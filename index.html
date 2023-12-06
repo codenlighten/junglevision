@@ -14,7 +14,7 @@
 			name="twitter:description"
 			content="View transaction details on the BSV Blockchain with Jungle Bus"
 		/>
-		<meta name="twitter:image" content="https://junglevision.online/logo.png" />
+		<meta name="twitter:image" content="logo.png" />
 
 		<script src="https://unpkg.com/bsv@1.5"></script>
 		<title>Jungle Vision</title>
@@ -154,10 +154,10 @@
 					const data = await getTxidInfo(txid);
 					// console.log(data);
 					const { transaction, contexts } = data;
-					// console.log(contexts);
+					console.log(transaction, contexts);
 					let base64 = transaction;
 					//convert to hex
-					const hex = Buffer.from(base64, "base64").toString("hex");
+					let hex = Buffer.from(base64, "base64").toString("hex");
 					//decode the transaction hex
 					const tx = new bsv.Transaction(hex);
 					const outputs = tx.outputs;
