@@ -128,8 +128,9 @@
 
 			const getTxidInfoAndRender = async (txid) => {
 				const data = await getTxidInfo(txid);
+				// console.log(data);
 				const { transaction, contexts } = data;
-				console.log(contexts);
+				// console.log(contexts);
 				let base64 = transaction;
 				//convert to hex
 				const hex = Buffer.from(base64, "base64").toString("hex");
@@ -141,7 +142,7 @@
 				// get the script
 				const script = output.script;
 				// get the script chunks
-				console.log(script);
+				// console.log(script);
 				// convert the script to asm
 				const asm = script.toASM();
 				// split the asm into an array
@@ -149,19 +150,28 @@
 				//remove op return data
 				asmArray = asmArray.slice(2);
 				const bufArray = asmArray.map((item) => Buffer.from(item, "hex"));
-				console.log(bufArray);
+				// console.log(bufArray);
 				// //base64 is 2nd element in array
 				let media = bufArray[1].toString("base64");
 				// //mime is 3rd element in array
 				let mime = bufArray[2].toString("utf8");
-				// separate the rest of the data into key value pairs after the 6th element
+				const remaining = bufArray.slice(2).toString("utf8");
+				//turn long string of comma separated elements into array of sections
+				let sections = remaining.split(",");
+				// remove all elements up to "|" character
+				const index = sections.indexOf("|");
+				sections = sections.slice(index + 1);
+				console.log(sections);
+				//remove any "|" characters from the array
+				sections = sections.filter((item) => item !== "|");
 
-				const dataPairs = bufArray.slice(5);
-				// convert the data pairs into an object
-				const dataObj = {};
-				dataPairs.forEach((pair, i) => {
+				let dataObj = {};
+				sections.forEach((section, i) => {
+					// console.log(section);
+					// console.log(i);
 					if (i % 2 === 0) {
-						dataObj[pair.toString("utf8")] = dataPairs[i + 1].toString("utf8");
+						// console.log(section);
+						dataObj[section] = sections[i + 1];
 					}
 				});
 				let title = "Jungle Vision";
@@ -171,9 +181,19 @@
 				if (dataObj.text) {
 					title = dataObj.text;
 				}
+				if (dataObj.description) {
+					title = dataObj.description;
+				}
+
 				let description =
 					"View transaction details on the BSV Blockchain with Jungle Bus";
 				if (dataObj.description) {
+					description = dataObj.description;
+				}
+				if (dataObj.app && !dataObj.title) {
+					title = dataObj.app.toUpperCase();
+					//reverse the title
+					dataObj.description = dataObj.app.split("").reverse().join("");
 					description = dataObj.description;
 				}
 				console.log(dataObj);
@@ -244,16 +264,23 @@
 						break;
 					default:
 						mimetype = "text/plain";
+						elementType = "p";
 						break;
 				}
 
 				const dataurl = `data:${mimetype};base64,${media}`;
-				const el = document.createElement(elementType);
+				let el = document.createElement(elementType);
 				el.src = dataurl;
 				el.controls = true;
 				el.autoplay = true;
 				el.loop = true;
 				el.classList.add("media");
+				//if text,modify the element to use innerHTML
+				if (elementType === "p") {
+					// convert the base64 to utf8
+					const utf8 = Buffer.from(media, "base64").toString("utf8");
+					el.innerHTML = utf8;
+				}
 				const mediaResults = document.getElementById("mediaResults");
 				const titleEl = document.createElement("h2");
 				titleEl.innerHTML = title;
