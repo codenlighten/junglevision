@@ -302,13 +302,6 @@
 				getAddressInfoAndRender(address);
 			}
 
-			const form2 = document.getElementById("addressform");
-			form2.addEventListener("submit", (event) => {
-				event.preventDefault();
-				const address = document.getElementById("address").value;
-				getAddressInfoAndRender(address);
-			});
-
 			// GET /v1/address/transactions/:address	Get the transaction document for all transactions associated with the given address
 			// const getAddressInfo2 = async (address) => {
 			// 	const response = await fetch(
