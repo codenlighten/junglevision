@@ -178,9 +178,7 @@
 				if (dataObj.title) {
 					title = dataObj.title;
 				}
-				if (dataObj.text) {
-					title = dataObj.text;
-				}
+
 				if (dataObj.description) {
 					title = dataObj.description;
 				}
@@ -195,6 +193,9 @@
 					//reverse the title
 					dataObj.description = dataObj.app.split("").reverse().join("");
 					description = dataObj.description;
+				}
+				if (dataObj.text) {
+					title = dataObj.text;
 				}
 				console.log(dataObj);
 				// console.log(media, mime);
